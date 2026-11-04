@@ -86,7 +86,8 @@ jobs:
           test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo 'Missing CLOUDFLARE_ACCOUNT_ID secret'; exit 1; }
       - run: npm ci
       - name: Apply pending production migrations
-        run: npm run database -- --yes
+        # Wrangler skips confirmation automatically in non-interactive CI.
+        run: npm run database
       - name: Preserve or initialize encryption key
         run: npm run setup-key
       - name: Deploy checked Worker and assets
