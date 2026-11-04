@@ -1,0 +1,16 @@
+{
+  "name": "auctionhouse-deployment",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "engines": { "node": ">=22.13.0" },
+  "scripts": {
+    "login": "wrangler login",
+    "whoami": "wrangler whoami",
+    "database": "wrangler d1 migrations apply DB --remote --config wrangler.json",
+    "setup-key": "node setup-key.mjs",
+    "deploy": "wrangler deploy --config wrangler.json",
+    "check": "wrangler deploy --dry-run --config wrangler.json"
+  },
+  "dependencies": { "wrangler": "4.92.0" }
+}

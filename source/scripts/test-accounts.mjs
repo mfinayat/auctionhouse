@@ -1,0 +1,40 @@
+import {getPlatformProxy} from 'wrangler';
+import {registerHooks} from 'node:module';
+import ts from 'typescript';
+import fs from 'node:fs';
+import path from 'node:path';
+import {pathToFileURL,fileURLToPath} from 'node:url';
+import assert from 'node:assert/strict';
+import {randomBytes} from 'node:crypto';
+const proxy=await getPlatformProxy({configPath:'dist/server/wrangler.json',persist:false});
+globalThis.__AH_TEST_ENV={DB:proxy.env.DB,PII_ENCRYPTION_KEY:randomBytes(32).toString('base64')};
+registerHooks({resolve(specifier,context,next){if(specifier==='cloudflare:workers')return{url:'data:text/javascript,export const env=globalThis.__AH_TEST_ENV;',shortCircuit:true};if(specifier.startsWith('.')&&context.parentURL?.includes('/app/')){const u=new URL(specifier,context.parentURL);if(!path.extname(u.pathname)&&fs.existsSync(fileURLToPath(u)+'.ts'))return{url:u.href+'.ts',shortCircuit:true}}return next(specifier,context)},load(url,context,next){if(url.endsWith('.ts')&&url.includes('/app/'))return{format:'module',shortCircuit:true,source:ts.transpileModule(fs.readFileSync(fileURLToPath(url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText};return next(url,context)}});
+try{
+const DB=proxy.env.DB;for(const sql of fs.readFileSync('drizzle/0000_broad_sentinel.sql','utf8').split('--> statement-breakpoint').map(s=>s.trim()).filter(Boolean))await DB.prepare(sql).run();
+const {GET,POST}=await import('../app/api/[...path]/route.ts');let cookie='';const origin='https://test.example';
+async function call(p,data,withCookie=true,customHeaders={}){const req=new Request(origin+p,{method:data===undefined?'GET':'POST',headers:{Origin:origin,...(data!==undefined?{'Content-Type':'application/json'}:{}),...(withCookie&&cookie?{Cookie:cookie}:{}),...customHeaders},body:data===undefined?undefined:JSON.stringify(data)});const res=await(data===undefined?GET(req):POST(req));return {res,json:await res.json()}}
+const email='qa@example.test',cnic='3520200000011',password='Synthetic-Account-98765',profile={fullName:'QA Test Account',fatherName:'QA Parent',cnic,email,countryCode:'+92',mobile:'3001234567',address:'Example Street, Test City, Pakistan',password,confirmPassword:password};
+let r=await call('/api/interests');assert.equal(r.res.status,401);
+r=await call('/api/auth/register',{...profile,mobile:'123'});assert.equal(r.res.status,400);assert.match(r.json.error,/mobile/i);
+r=await call('/api/auth/register',{...profile,confirmPassword:'Different-Password-123'});assert.equal(r.res.status,400);
+r=await call('/api/auth/register',profile);assert.equal(r.res.status,201,JSON.stringify(r.json));cookie=r.res.headers.get('set-cookie').split(';')[0];assert.equal(r.json.user.profileComplete,true);assert(!JSON.stringify(r.json).includes(cnic));assert.match(r.res.headers.get('set-cookie'),/HttpOnly/);assert.match(r.res.headers.get('set-cookie'),/Secure/);
+const row=await DB.prepare('SELECT * FROM accounts WHERE email=?').bind(email).first();assert.notEqual(row.cnic_encrypted,cnic);assert.notEqual(row.address_encrypted,profile.address);assert.match(row.password_hash,/^\$2[aby]\$12\$/);
+r=await call('/api/auth/me');assert.equal(r.json.user.email,email);
+r=await call('/api/interests',{role:'buy',project:'executive',category:'1 Kanal · Residential',budget:35000000,premium:2000000,notes:'Synthetic local QA record'});assert.equal(r.res.status,201);
+r=await call('/api/interests');assert.equal(r.json.interests.length,1);
+r=await call('/api/interests',undefined,false);assert.equal(r.res.status,401);
+r=await call('/api/auth/logout',{});assert.equal(r.res.status,200);
+r=await call('/api/auth/me');assert.equal(r.json.user,null);
+r=await call('/api/auth/login',{email,password:'wrong-password'});assert.equal(r.res.status,401);
+r=await call('/api/auth/login',{email,password});assert.equal(r.res.status,200);cookie=r.res.headers.get('set-cookie').split(';')[0];
+r=await call('/api/interests',{role:'buy',project:'executive',category:'1 Kanal · Residential',budget:1,premium:2});assert.equal(r.res.status,400);
+r=await call('/api/auth/forgot',{email});assert.equal(r.res.status,503);
+globalThis.__AH_TEST_ENV.RESEND_API_KEY='synthetic-test-only';globalThis.__AH_TEST_ENV.EMAIL_FROM='test@example.test';let resetToken;const realFetch=globalThis.fetch;globalThis.fetch=async(url,options)=>{assert.equal(url,'https://api.resend.com/emails');const text=JSON.parse(options.body).text;resetToken=text.match(/token=([a-f0-9]{64})/)[1];return new Response('{}',{status:200})};
+r=await call('/api/auth/forgot',{email});assert.equal(r.res.status,200);globalThis.fetch=realFetch;
+r=await call('/api/auth/reset',{token:resetToken,password:'Updated-Synthetic-Account-456',confirmPassword:'Updated-Synthetic-Account-456'});assert.equal(r.res.status,200);
+r=await call('/api/auth/reset',{token:resetToken,password:'Another-Synthetic-Account-789',confirmPassword:'Another-Synthetic-Account-789'});assert.equal(r.res.status,400);
+r=await call('/api/auth/me');assert.equal(r.json.user,null);
+r=await call('/api/auth/login',{email,password:'Updated-Synthetic-Account-456'});assert.equal(r.res.status,200);
+r=await call('/api/auth/login',{email,password:'Updated-Synthetic-Account-456'},true,{Origin:'https://attacker.example'});assert.equal(r.res.status,400);
+console.log('PASS: account validation, CNIC/address encryption, bcrypt hashing, HttpOnly Secure session, authentication, protected interests, pricing validation, logout, email recovery configuration, one-time reset, session revocation, password update, cross-origin rejection.');
+}finally{await proxy.dispose();delete globalThis.__AH_TEST_ENV}

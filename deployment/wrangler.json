@@ -1,0 +1,38 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "auctionhouse",
+  "main": "server/index.js",
+  "compatibility_date": "2026-05-15",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "workers_dev": true,
+  "assets": {
+    "directory": "client"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "auctionhouse-db",
+      "database_id": "dbe669e5-40e1-45e6-b953-66fbc2e3c908",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "vars": {
+    "EMAIL_FROM": "AuctionHouse <accounts@auctionhouse.pk>",
+    "SITE_ORIGIN": "https://auctionhouse.pk"
+  },
+  "observability": {
+    "enabled": true
+  },
+  "no_bundle": true,
+  "rules": [
+    {
+      "type": "ESModule",
+      "globs": [
+        "**/*.js",
+        "**/*.mjs"
+      ]
+    }
+  ]
+}
