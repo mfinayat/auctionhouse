@@ -51,6 +51,7 @@ jobs:
             deployment/package.json
             deployment/package-lock.json
             deployment/setup-key.mjs
+            deployment/check-d1-access.mjs
 
   deploy:
     name: Deploy production
@@ -85,6 +86,8 @@ jobs:
           test -n "$CLOUDFLARE_API_TOKEN" || { echo 'Missing CLOUDFLARE_API_TOKEN secret'; exit 1; }
           test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo 'Missing CLOUDFLARE_ACCOUNT_ID secret'; exit 1; }
       - run: npm ci
+      - name: Diagnose Cloudflare D1 access
+        run: node check-d1-access.mjs
       - name: Apply pending production migrations
         # Wrangler skips confirmation automatically in non-interactive CI.
         run: npm run database
