@@ -2,6 +2,7 @@ import { env } from 'cloudflare:workers';
 import { Google,generateState,generateCodeVerifier,decodeIdToken } from 'arctic';
 import { validateProfile,validatePassword,normalizeEmail,safeReturn } from '../../lib/validation';
 import {db,randomToken,digest,encrypt,fingerprint,hashPassword,checkPassword,cookie,setCookie,startSession,currentAccount,publicAccount,rateLimit,emailToken} from '../../lib/accounts';
+import {dealRequest} from '../../lib/deals';
 export const dynamic='force-dynamic';
 const headers={'Content-Type':'application/json','Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer'};
 function json(value:any,status=200,cookies:string[]=[]){const h=new Headers(headers);for(const c of cookies)h.append('Set-Cookie',c);return new Response(JSON.stringify(value),{status,headers:h})}
@@ -11,6 +12,7 @@ async function body(req:Request){if(req.headers.get('origin')!==new URL(req.url)
 async function requireAccount(req:Request,complete=false){const a=await currentAccount(req);if(!a)throw new Error('Log in to continue.');if(complete&&!a.profile_complete)throw new Error('Complete your account details to continue.');return a}
 function googleClient(req:Request){if(!env.GOOGLE_CLIENT_ID||!env.GOOGLE_CLIENT_SECRET)throw new Error('Google login is not connected yet. Please use email and password.');return new Google(env.GOOGLE_CLIENT_ID,env.GOOGLE_CLIENT_SECRET,origin(req)+'/api/google/callback')}
 export async function GET(req:Request){const url=new URL(req.url),path=url.pathname;try{
+ if(path.startsWith('/api/admin/')||path==='/api/deals'||path.startsWith('/api/deals/'))return dealRequest(req);
  if(path==='/api/auth/me')return json({user:publicAccount(await currentAccount(req))});
  if(path==='/api/auth/options')return json({google:!!(env.GOOGLE_CLIENT_ID&&env.GOOGLE_CLIENT_SECRET),recovery:!!(env.RESEND_API_KEY&&env.EMAIL_FROM)});
  if(path==='/api/interests'){const a=await requireAccount(req,true);const rows=await db().prepare('SELECT id,role,project,category,budget,premium,allotment,notes,created_at FROM interests WHERE account_id=? ORDER BY created_at DESC').bind(a.id).all();return json({interests:rows.results})}
@@ -19,6 +21,7 @@ export async function GET(req:Request){const url=new URL(req.url),path=url.pathn
  return json({error:'Not found.'},404)
  }catch(e){const message=e instanceof Error?e.message:'Please try again.';if(path.startsWith('/api/google/'))return redirect('/#/login?error='+encodeURIComponent(message));return json({error:message},message.includes('Log in')?401:400)}}
 export async function POST(req:Request){try{const data=await body(req),path=new URL(req.url).pathname;
+ if(path.startsWith('/api/admin/')||path.startsWith('/api/deals/'))return dealRequest(req,data);
  if(path==='/api/auth/register'){await rateLimit(req,'register',8);const email=normalizeEmail(data.email),password=validatePassword(data.password,data.confirmPassword),p=validateProfile(data);if(await db().prepare('SELECT id FROM accounts WHERE email=? OR cnic_fingerprint=?').bind(email,await fingerprint(p.cnic)).first())return json({error:'An account already uses those details. Please log in or recover your password.'},409);const id=crypto.randomUUID(),cnic=await encrypt(p.cnic),address=await encrypt(p.address),hash=await hashPassword(password);await db().prepare('INSERT INTO accounts (id,email,full_name,father_name,cnic_encrypted,cnic_fingerprint,address_encrypted,phone,password_hash,email_verified,profile_complete,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,0,1,?,?)').bind(id,email,p.fullName,p.fatherName,cnic,await fingerprint(p.cnic),address,p.phone,hash,Date.now(),Date.now()).run();const a=await db().prepare('SELECT * FROM accounts WHERE id=?').bind(id).first();return json({user:publicAccount(a)},201,[await startSession(req,id)])}
  if(path==='/api/auth/login'){await rateLimit(req,'login',12);const email=normalizeEmail(data.email);const a=await db().prepare('SELECT * FROM accounts WHERE email=?').bind(email).first<any>();if(!a?.password_hash||typeof data.password!=='string'||data.password.length>100||!await checkPassword(data.password,a.password_hash))return json({error:'Email or password is incorrect.'},401);return json({user:publicAccount(a)},200,[await startSession(req,a.id)])}
  if(path==='/api/auth/logout'){const token=cookie(req,'ah_session');if(token)await db().prepare('DELETE FROM account_sessions WHERE token_hash=?').bind(await digest(token)).run();return json({ok:true},200,[setCookie(req,'ah_session','',0)])}

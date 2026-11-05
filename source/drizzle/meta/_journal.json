@@ -8,6 +8,13 @@
       "when": 1793746898636,
       "tag": "0000_broad_sentinel",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1793786909875,
+      "tag": "0001_deal_management",
+      "breakpoints": true
     }
   ]
 }

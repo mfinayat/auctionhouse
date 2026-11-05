@@ -1,3 +1,3 @@
 import type { Metadata } from 'next';
 export const metadata:Metadata={title:'AuctionHouse.pk — Ballot applications are open',icons:{icon:'/favicon.svg'},description:'Pine Axis and Pine Executive ballot applications close 3 December 2026. Explore LDA opportunities and your next move with AuctionHouse.pk.'};
-export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="en"><head><meta name="theme-color" content="#f6f6f2"/><link rel="stylesheet" href="/style.css"/></head><body>{children}<script src="/app.js" defer /></body></html>}
+export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="en"><head><meta name="theme-color" content="#f6f6f2"/><link rel="stylesheet" href="/style.css"/><link rel="stylesheet" href="/management.css"/></head><body>{children}<script src="/app.js" defer /></body></html>}
