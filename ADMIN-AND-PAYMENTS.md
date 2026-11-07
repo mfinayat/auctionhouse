@@ -22,7 +22,7 @@ Example: on a PKR 10,000,000 sale at 1% per party, each service charge is PKR 10
 1. Register your own ordinary account and complete its profile.
 2. While logged in to the website, open `/api/auth/me` in another tab on the same hostname. Copy your own `user.id` value. This ID is not your Google client ID or your email address.
 3. In Cloudflare, open **Workers & Pages → auctionhouse → Settings → Variables and Secrets**. Add a **Secret** named `ADMIN_ACCOUNT_IDS`, with your account ID as its value. Separate multiple administrator account IDs with commas. Do not replace the encryption key.
-4. Reload the website. **My account → Admin deal desk** opens `/#/admin`.
+4. Reload the website. **My account → Admin deal desk** opens `/admin`.
 
 Only the operator-controlled account-ID allowlist grants administration. Registration/profile form fields cannot grant it. Removing an ID removes admin access on subsequent API requests. For local development, put the allowlist in ignored `source/.dev.vars` alongside the existing local encryption key.
 

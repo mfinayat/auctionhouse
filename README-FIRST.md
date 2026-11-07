@@ -37,7 +37,7 @@ Open the Worker address already shown in your dashboard:
 
 `https://auctionhouse.bunburgerchai.workers.dev`
 
-Confirm that the homepage, Marketplace, Create account and Log in pages load. Create your own account and save a buying/selling interest to verify your new database.
+Confirm that the homepage, Marketplace, Create account and Log in pages load. Create your own account, save a listing with its heart button, and try a demo bid to verify your new database.
 
 ## Connect auctionhouse.pk after it becomes Active
 

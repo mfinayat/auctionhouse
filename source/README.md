@@ -36,12 +36,14 @@ For local development, create an untracked `.dev.vars` containing a random base6
 - `app/lib/validation.ts`: server-side profile, CNIC-format, password and mobile validation.
 - `worker/index.ts`: standalone Worker entry point.
 
-The individual marketplace inventory is currently empty. The two active listing previews are labelled demos and do not accept money or bids. Saved interests are authenticated D1 records.
+The marketplace supports moderated seller listings, persistent demo bidding, favourites and private negotiations. Demo bids are practice only and do not collect money. See [WEBSITE-IMPROVEMENTS.md](../WEBSITE-IMPROVEMENTS.md) for workflow details, migration requirements and browser screenshots.
 
 ## Account regression checks
 
-The admin deal desk, 0.50%–2.00% service fees, participation deposits and settlement/payout ledger are documented in [ADMIN-AND-PAYMENTS.md](../ADMIN-AND-PAYMENTS.md), including operator setup and the pending PayFast Pakistan onboarding. Access the admin panel through `/#/admin` and customer deals through `/#/deals`.
+The admin deal desk, 0.50%–2.00% service fees, participation deposits and settlement/payout ledger are documented in [ADMIN-AND-PAYMENTS.md](../ADMIN-AND-PAYMENTS.md), including operator setup and the pending PayFast Pakistan onboarding. Access the admin panel through `/admin` and customer deals through `/deals`.
 
 After building, `node scripts/test-accounts.mjs` exercises validation, password hashing, encrypted profile storage, login/session controls, protected interests and single-use recovery tokens against an isolated temporary database. Email delivery is intercepted in this test; it does not send messages or write to the supplied remote database.
 
 After building, `npm run test:deals` exercises the new deal/payment/settlement flow against all migrations in a separate temporary local D1 database.
+
+Run `npm run test:auctions` for bidding, negotiation and account-setting regression checks. Run `npm run test:browser` for desktop/mobile Chrome checks against synthetic local data.

@@ -10,6 +10,8 @@
     "build": "vinext build",
     "typecheck": "tsc --noEmit",
     "test:deals": "node scripts/test-deals.mjs",
+    "test:auctions": "node scripts/test-auctions.mjs",
+    "test:browser": "node scripts/test-browser.mjs",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "wrangler d1 migrations apply DB --remote --config wrangler.jsonc",
     "deploy": "wrangler deploy --config dist/server/wrangler.json",
