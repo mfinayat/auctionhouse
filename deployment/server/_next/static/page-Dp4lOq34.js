@@ -1,0 +1,1 @@
+import{t as e}from"./framework~index~page~layout~page~app-page-cache-render~app-page-cache~app-route-handler-dispatch-Dxs79ql0.js";import{n as t}from"./site-shell-CcaAVjgd.js";import"./shell-DgRed0No.js";var n=e();function r(){return(0,n.jsx)(`div`,{dangerouslySetInnerHTML:{__html:t}})}export{r as default};

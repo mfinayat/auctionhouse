@@ -1,0 +1,1 @@
+ALTER TABLE `wallet_entries` ADD `direction` text DEFAULT 'credit' NOT NULL;

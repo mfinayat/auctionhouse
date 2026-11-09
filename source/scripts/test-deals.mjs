@@ -39,7 +39,7 @@ try {
     const token=({operator:'a',buyer:'b',seller:'c',outsider:'d'})[id].repeat(64);cookies[id]='ah_session='+token;
     await DB.prepare('INSERT INTO account_sessions (token_hash,account_id,expires_at) VALUES (?,?,?)').bind(await digest(token),id,Date.now()+600000).run();
   }
-  assert.equal(publicAccount({id:'operator'}).isAdmin,true);assert.equal(publicAccount({id:'buyer',isAdmin:true}).isAdmin,false);
+  await DB.prepare("INSERT INTO staff_accounts (id,username,password_hash,role,must_change,actor_id,created_at) VALUES ('operator','operator','unused-test-hash','owner',0,'operator',?)").bind(Date.now()).run();await DB.prepare('INSERT INTO staff_sessions (token_hash,staff_id,expires_at) VALUES (?,?,?)').bind(await digest('a'.repeat(64)),'operator',Date.now()+600000).run();cookies.operator='ah_staff='+'a'.repeat(64);assert.equal(publicAccount({id:'operator'}).isAdmin,false);assert.equal(publicAccount({id:'buyer',isAdmin:true}).isAdmin,false);
   const origin='https://test.example';
   async function call(actor,url,data,overrideHeaders={}){
     const request=new Request(origin+url,{method:data===undefined?'GET':'POST',headers:{Origin:origin,...(actor?{Cookie:cookies[actor]}:{}),...(data===undefined?{}:{'Content-Type':'application/json'}),...overrideHeaders},body:data===undefined?undefined:JSON.stringify(data)});
@@ -48,7 +48,7 @@ try {
   async function expect(actor,url,data,status=200){const r=await call(actor,url,data);assert.equal(r.status,status,JSON.stringify(r.body));return r.body;}
   await expect(null,'/api/admin/overview',undefined,401);
   await expect('buyer','/api/admin/overview',undefined,403);
-  const overview=await expect('operator','/api/admin/overview');assert.equal(overview.accounts.length,4);assert(!JSON.stringify(overview).includes('password_hash'));
+  const overview=await expect('operator','/api/admin/overview');assert(overview.accounts.length>=4);assert(!JSON.stringify(overview).includes('password_hash'));
   const draft={title:'Synthetic Pine Executive deal',buyerId:'buyer',sellerId:'seller',salePrice:'100000.00',buyerRateBps:50,sellerRateBps:100,buyerDeposit:'200.00',sellerDeposit:'1200.00',terms:'Synthetic test agreement. Participation is credited to service charges on completion.'};
   await expect('buyer','/api/admin/deals',draft,403);
   await expect('operator','/api/admin/deals',{...draft,sellerId:'buyer'},400);

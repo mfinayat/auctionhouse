@@ -7,6 +7,17 @@
     "nodejs_compat"
   ],
   "workers_dev": true,
+  "r2_buckets": [
+    {
+      "binding": "BUCKET",
+      "bucket_name": "auctionhouse-uploads"
+    }
+  ],
+  "triggers": {
+    "crons": [
+      "*/5 * * * *"
+    ]
+  },
   "assets": {
     "directory": "client"
   },
@@ -25,6 +36,22 @@
   "observability": {
     "enabled": true
   },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "LIVE_HUB",
+        "class_name": "LiveHub"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "live-hub-v1",
+      "new_sqlite_classes": [
+        "LiveHub"
+      ]
+    }
+  ],
   "no_bundle": true,
   "rules": [
     {

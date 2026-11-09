@@ -33,6 +33,10 @@ jobs:
       - run: npm run build
       - name: Account regression checks (isolated local database)
         run: node scripts/test-accounts.mjs
+      - run: npm run test:deals
+      - run: npm run test:platform
+      - run: npm run test:browser
+      - run: npm run test:worker
       - run: npm run deploy:package
       - name: Validate packaged Worker
         run: npx --no-install wrangler deploy --dry-run --config ../deployment/wrangler.json

@@ -11,11 +11,15 @@
     "typecheck": "tsc --noEmit",
     "test:deals": "node scripts/test-deals.mjs",
     "test:auctions": "node scripts/test-auctions.mjs",
+    "test:platform": "node scripts/test-nov8.mjs && node scripts/test-nov9.mjs",
     "test:browser": "node scripts/test-browser.mjs",
+    "test:worker": "node scripts/test-worker.mjs",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "wrangler d1 migrations apply DB --remote --config wrangler.jsonc",
     "deploy": "wrangler deploy --config dist/server/wrangler.json",
-    "deploy:package": "node scripts/package-deployment.mjs"
+    "deploy:package": "node scripts/package-deployment.mjs",
+    "prebuild": "node scripts/bundle-assets.mjs",
+    "predev": "node scripts/bundle-assets.mjs"
   },
   "dependencies": {
     "arctic": "3.7.0",

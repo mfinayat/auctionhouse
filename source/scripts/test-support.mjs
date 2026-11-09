@@ -1,0 +1,8 @@
+import {getPlatformProxy} from 'wrangler';
+import {registerHooks} from 'node:module';
+import ts from 'typescript';
+import fs from 'node:fs';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {randomBytes} from 'node:crypto';
+export async function runtime(){const proxy=await getPlatformProxy({configPath:'dist/server/wrangler.json',persist:false});globalThis.__AH_PLATFORM_ENV={DB:proxy.env.DB,BUCKET:proxy.env.BUCKET,PII_ENCRYPTION_KEY:randomBytes(32).toString('base64'),ADMIN_ACCOUNT_IDS:'legacy-user'};registerHooks({resolve(specifier,context,next){if(specifier==='cloudflare:workers')return{url:'data:text/javascript,export const env=globalThis.__AH_PLATFORM_ENV;',shortCircuit:true};if(specifier.startsWith('.')&&context.parentURL?.includes('/app/')){const u=new URL(specifier,context.parentURL);if(!path.extname(u.pathname)&&fs.existsSync(fileURLToPath(u)+'.ts'))return{url:u.href+'.ts',shortCircuit:true}}return next(specifier,context)},load(url,context,next){if(url.endsWith('.ts')&&url.includes('/app/'))return{format:'module',shortCircuit:true,source:ts.transpileModule(fs.readFileSync(fileURLToPath(url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText};return next(url,context)}});const DB=proxy.env.DB;for(const file of fs.readdirSync('drizzle').filter(f=>f.endsWith('.sql')).sort())for(const sql of fs.readFileSync('drizzle/'+file,'utf8').split('--> statement-breakpoint').map(s=>s.trim()).filter(Boolean))await DB.prepare(sql).run();const routes=await import('../app/api/[...path]/route.ts'),accounts=await import('../app/lib/accounts.ts');return{proxy,DB,routes,accounts,env:globalThis.__AH_PLATFORM_ENV,async dispose(){await proxy.dispose();delete globalThis.__AH_PLATFORM_ENV}}}

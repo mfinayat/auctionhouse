@@ -22,6 +22,48 @@
       "when": 1793917351557,
       "tag": "0002_yummy_rumiko_fujikawa",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1794019262819,
+      "tag": "0003_plain_stature",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1794020606267,
+      "tag": "0004_fat_valeria_richards",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1794021548179,
+      "tag": "0005_curved_sheva_callister",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1794078772963,
+      "tag": "0006_superb_wendell_rand",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1794101526864,
+      "tag": "0007_fearless_black_tom",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1794191404446,
+      "tag": "0008_orange_cargill",
+      "breakpoints": true
     }
   ]
 }

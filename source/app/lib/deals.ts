@@ -1,5 +1,6 @@
 import {db, currentAccount} from './accounts';
 import {isAdmin} from './admin-access';
+import {staffActor,currentStaff} from './staff';
 import {money, fee, partyBalance, settlement, FINANCIAL_POLICY, type SettlementKind} from './fees';
 
 class RequestError extends Error {
@@ -59,8 +60,8 @@ async function detail(deal: any, account: any, admin: boolean) {
 export async function dealRequest(req: Request, data?: any): Promise<Response> {
   try {
     const url = new URL(req.url), path = url.pathname, adminRoute = path.startsWith('/api/admin/');
-    const account = await currentAccount(req);
-    if (!account) throw new RequestError('Log in to continue.',401);
+    const account = adminRoute ? await staffActor(req) : await currentAccount(req);
+    if (!account) {if(adminRoute&&(await currentAccount(req)||await currentStaff(req)))throw new RequestError('Administrator access is required.',403);throw new RequestError('Log in to continue.',401);}
     const admin = isAdmin(account);
     if (adminRoute && !admin) throw new RequestError('Administrator access is required.',403);
 

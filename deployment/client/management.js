@@ -1,6 +1,6 @@
 const amount = value => 'Rs '+(Number(value)/100).toLocaleString('en-PK',{minimumFractionDigits:2,maximumFractionDigits:2});
 const statusText = value => ({awaiting_deposits:'Awaiting deposits',active:'Active',completed:'Completed',disputed:'Under review',cancelled:'Cancelled',defaulted:'Default settled',received:'Received',voided:'Voided'}[value] || value);
-const when = value => value ? new Date(value).toLocaleString('en-PK',{timeZone:'Asia/Karachi',dateStyle:'medium',timeStyle:'short'}) : 'Not accepted';
+const when = value => value ? (globalThis.siteDate?globalThis.siteDate(value,true):new Intl.DateTimeFormat('en-GB',{day:'2-digit',month:'short',year:'numeric',timeZone:'Asia/Karachi'}).format(value).replace(/ (\d{4})$/,', $1')) : 'Not accepted';
 const rate = value => (value/100).toFixed(2)+'%';
 const label = value => value==='buyer'?'Buyer':'Seller';
 
@@ -70,7 +70,7 @@ function createForm(ctx,accounts,reload) {
     try {
       const data=Object.fromEntries(new FormData(form));data.buyerRateBps=Math.round(Number(data.buyerRate)*100);data.sellerRateBps=Math.round(Number(data.sellerRate)*100);
       const result=await ctx.api('/api/admin/deals',data);
-      if(ctx.isCurrent()){ctx.toast('Deal issued. Both parties can review it in My deals.');history.pushState({},'','/admin/deal/'+result.id);dispatchEvent(new PopStateEvent('popstate'));}
+      if(ctx.isCurrent()){ctx.toast('Deal issued. Both parties can review it in My deals.');if(ctx.navigate)ctx.navigate('/budapest-admin/fee-deals/'+result.id);else{history.pushState({},'','/admin/deal/'+result.id);dispatchEvent(new PopStateEvent('popstate'));}}
     } catch(error) {const el=panel.querySelector('.form-error');el.textContent=error.message;el.hidden=false;ctx.pending(form,false);}
   };
   panel.scrollIntoView({behavior:'smooth',block:'start'});

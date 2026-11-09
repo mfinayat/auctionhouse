@@ -1,0 +1,4 @@
+import {clean,HttpError} from './platform';
+export const pageDefaults={title:'AuctionHouse.pk — Property marketplace',description:'Explore reviewed property listings, bid transparently and negotiate with sellers on AuctionHouse.pk.',heading:'Where luck meets opportunity…',intro:'Compete in the open auction or negotiate on your terms.',banner:'',deadline:0};
+export function pageContent(value:any){return {...pageDefaults,...value}}
+export function validatePage(value:any){const result:any={};for(const key of ['title','description','heading','intro'])result[key]=clean(value[key],key,3,key==='intro'||key==='description'?500:160);result.banner=String(value.banner||'').trim().slice(0,200);result.deadline=Number(value.deadline)||0;if(!Number.isSafeInteger(result.deadline)||result.deadline<0)throw new HttpError('Choose a valid banner deadline.');return result}

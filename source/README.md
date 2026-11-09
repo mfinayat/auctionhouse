@@ -1,5 +1,7 @@
 # Editable AuctionHouse.pk source
 
+The current release is [RELEASE-2026-11-07.md](../RELEASE-2026-11-07.md). It adds the separate `/budapest-admin` portal, configurable projects, private R2 uploads, cash balances and notification emails. Apply all pending migrations and create/configure the private upload bucket before deployment.
+
 This is an independent Cloudflare/Vinext project. It does not require the ChatGPT Sites plugin, a source credential from ChatGPT, or any access to the original hosted Site.
 
 ## Requirements

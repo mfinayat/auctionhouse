@@ -1,3 +1,5 @@
+> Current administration: use `/budapest-admin` with separate staff credentials. Customer `ADMIN_ACCOUNT_IDS` allowlisting no longer grants access. The existing financial desk is available under Fees & Settlement. See [RELEASE-2026-11-07.md](RELEASE-2026-11-07.md) for current access, balances, notifications and release instructions. Older account-access instructions below are superseded; the financial policy remains applicable.
+
 # AuctionHouse deal desk and participation payments
 
 The editable implementation is in `source/`. Nothing in this change applies production migrations or deploys the Worker automatically. Your existing GitHub workflow is unchanged; pushing to `main` still triggers it.
